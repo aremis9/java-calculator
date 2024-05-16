@@ -8,7 +8,6 @@ import java.awt.Font;
 import java.awt.event.ActionListener;
 import javax.swing.Timer;
 
-// Created by SIMERA and PANGANIBAN
 
 /**
  *
@@ -42,6 +41,10 @@ public class Calculator extends javax.swing.JFrame {
     }
     
     public String numToStr(float n){
+        /**
+         * Converts a float to string
+         * If the float is a whole number, remove the decimal.
+         */
         String string = "";
         if (n % 1 == 0)
             string = String.valueOf((int) n);
@@ -52,38 +55,37 @@ public class Calculator extends javax.swing.JFrame {
     }
     
     public void setOperator(String operation) {
-        try {
-            if (!txtIO.getText().equals("")) {
-                if (num1State == 1) {
-                    num1 = Float.parseFloat(txtIO.getText());
-                    num1State = 2;
-                }
-                else {
-                    if (numInputState == 1)
-                        btnEqActionPerformed(null);
-                    
-                    num1 = Float.parseFloat(txtIO.getText());
-                }
+        if (!txtIO.getText().equals("")) {
+            if (num1State == 1) {
+                num1 = Float.parseFloat(txtIO.getText());
+                num1State = 2;
             }
-            
-            operator = operation;
-            num2 = num1;
-            
-            lblOperation.setText(numToStr(num1) + " " + operator + " ");
-            numInputState = 2;
-        } catch (Exception e) {
-            System.out.println(e);
+            else {
+                if (numInputState == 1)
+                    btnEqActionPerformed(null);
+
+                num1 = Float.parseFloat(txtIO.getText());
+            }
         }
+
+        operator = operation;
+        num2 = num1;
+
+        lblOperation.setText(numToStr(num1) + " " + operator + " ");
+        numInputState = 2;
     }
     
     public void btnNumAction(String num, boolean fromBtn) {
         if (numInputState == 2) {
             txtIO.setText("");
         }
+        
         numInputState = 1;
         
-        if (fromBtn)
+        if (fromBtn) {
+            // Show number to output if action came from btn (not keytyped)
             txtIO.setText(txtIO.getText() + num);
+        }
     }
     
     /**
@@ -388,23 +390,21 @@ public class Calculator extends javax.swing.JFrame {
     private void btnEqActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEqActionPerformed
         // TODO add your handling code here:
         if (numInputState == 1) {
-            try {
+            if (txtIO.getText().equals(""))
+                num2 = 0;
+            else
                 num2 = Float.parseFloat(txtIO.getText());
-            } catch (Exception e) {
-                System.out.println(e);
-            }
+            
         }
         else if (numInputState == 2) {
-            try {
-                num1 = Float.parseFloat(txtIO.getText());
-            } catch (Exception e) {
+            if (txtIO.getText().equals(""))
                 num1 = 0;
-                System.out.println(e);
-            }
+            else
+                num1 = Float.parseFloat(txtIO.getText());
         }
         
-        
         String ans = "";
+        
         if (operator == "+")
             ans = numToStr(num1 + num2);
         else if (operator == "-")
@@ -413,7 +413,10 @@ public class Calculator extends javax.swing.JFrame {
             ans = numToStr(num1 * num2);
         else if (operator == "÷") {
             if (num2 == 0) {
-                // Division by zero
+                /* Division by zero:
+                * Show "Cannot divide by zero." for 2 seconds
+                * then reset the calculator
+                */
                 ActionListener listener = new ActionListener(){
                     public void actionPerformed(java.awt.event.ActionEvent evt){
                         resetCalculator();
@@ -431,22 +434,18 @@ public class Calculator extends javax.swing.JFrame {
                 
                 return;
             }
+            // Valid division
             ans = numToStr(num1 / num2);
         }
         else {
-            try {
-                // Clicked equals without operation -> ans = first operand
-                num1 = Float.parseFloat(txtIO.getText());
-                lblOperation.setText(numToStr(num1) + " =");
-                txtIO.setText(numToStr(num1));  
-            } catch (Exception e) {
-                // Clicked equals without operation and operands
+            // Clicked "=" without operation
+            if (txtIO.getText().equals("")) // without operand -> ans = 0
                 num1 = 0;
-                lblOperation.setText(numToStr(num1) + " =");
-                txtIO.setText(numToStr(num1));  
-                
-                System.out.println(e);
-            }
+            else // with an operand -> ans = first operand
+                num1 = Float.parseFloat(txtIO.getText());
+
+            lblOperation.setText(numToStr(num1) + " =");
+            txtIO.setText(numToStr(num1));  
             
             numInputState = 1;
             return;

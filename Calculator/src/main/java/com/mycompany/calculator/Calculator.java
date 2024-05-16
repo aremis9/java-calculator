@@ -22,10 +22,18 @@ public class Calculator extends javax.swing.JFrame {
         initComponents();
     }
     
-    float num1 = 0;
-    float num2 = 0;
+    // this calculator only supports binary or dyadic operation (2 operands)
+    float num1 = 0; // left side of the operator
+    float num2 = 0; // right side of the operator
     String operator = "";
+    
+    // for keeping track whether the current input is num1 or num2 (except for the btnEq handling)
     int numInputState = 1;
+    
+    // for continuous calculation (when two operands are present and
+    // an operator is clicked again, it will be calculated and stored as num1)
+    // num1State = 1     : num1 is not set by the user
+    // num1State = 2     : num1 is set
     int num1State = 1;
     
     public void resetCalculator() {
@@ -60,15 +68,22 @@ public class Calculator extends javax.swing.JFrame {
                 num1 = Float.parseFloat(txtIO.getText());
                 num1State = 2;
             }
-            else {
-                if (numInputState == 1)
+            else { // num1State = 2
+                if (numInputState == 1) {
+                    // calculate ans
                     btnEqActionPerformed(null);
-
+                }
+                
+                // ans will be the new num1
                 num1 = Float.parseFloat(txtIO.getText());
             }
         }
 
         operator = operation;
+        
+        // In case of num2 (right side of operator) is not set by the user but clicked "=",
+        // num2 will be equal to num1 instead of the default 0.
+        // e.g.   "1 + _ = " wille be "1 + 1 = 2"
         num2 = num1;
 
         lblOperation.setText(numToStr(num1) + " " + operator + " ");
@@ -77,9 +92,12 @@ public class Calculator extends javax.swing.JFrame {
     
     public void btnNumAction(String num, boolean fromBtn) {
         if (numInputState == 2) {
+            // numInputState = 2 means the user is currently inputting num2
+            // thus txtIO should be cleared
             txtIO.setText("");
         }
         
+        // set numInputState = 1 to allow multiple digit operands (e.g. 10, 42, ...)
         numInputState = 1;
         
         if (fromBtn) {
@@ -389,15 +407,23 @@ public class Calculator extends javax.swing.JFrame {
 
     private void btnEqActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEqActionPerformed
         // TODO add your handling code here:
+        
+        // at this point, btnEq handling, numInputState has different meanings:
+        // numInputState = 1    : num1 has been set, get num2
+        // numInputState = 2    : num2 has been set, get num1
+        
         if (numInputState == 1) {
-            if (txtIO.getText().equals(""))
+            if (txtIO.getText().equals("")) // for error handling (empty text)
                 num2 = 0;
             else
                 num2 = Float.parseFloat(txtIO.getText());
-            
         }
         else if (numInputState == 2) {
-            if (txtIO.getText().equals(""))
+            // *this is for continuous calculation when "=" is clicked repeatedly
+            // (see the last line of this function)
+            // num1 will be the previously calculated ans
+            // num2 will be the same
+            if (txtIO.getText().equals("")) // for error handling (empty text)
                 num1 = 0;
             else
                 num1 = Float.parseFloat(txtIO.getText());
@@ -447,6 +473,7 @@ public class Calculator extends javax.swing.JFrame {
             lblOperation.setText(numToStr(num1) + " =");
             txtIO.setText(numToStr(num1));  
             
+            // reset numInputState for btnNum handling
             numInputState = 1;
             return;
         }
@@ -455,8 +482,11 @@ public class Calculator extends javax.swing.JFrame {
         String num2_s = numToStr(num2);
         lblOperation.setText(num1_s + " " + operator + " " + num2_s + " =");
         txtIO.setText(ans);
-        numInputState = 2;
         
+        // set numInputState = 2 to use the calculated ans as num1
+        // *this is for continuous calculation when "=" is clicked repeatedly
+        // (see the first else if block of this function)
+        numInputState = 2;
     }//GEN-LAST:event_btnEqActionPerformed
 
     private void btnCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCActionPerformed
@@ -541,12 +571,12 @@ public class Calculator extends javax.swing.JFrame {
             setOperator("×");
         else if (key == '/')
             setOperator("÷");
-        else if (key == '\n') 
+        else if (key == '\n') // 'Enter' key
             btnEqActionPerformed(null);
         
-        if(!(Character.isDigit(key)))
+        if(!(Character.isDigit(key))) // only allow numbers
             evt.consume();
-        else
+        else    // handle btnNum based on the typed number
             btnNumAction(Character.toString(key), false);
     }//GEN-LAST:event_txtIOKeyTyped
 
